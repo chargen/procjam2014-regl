@@ -1,0 +1,17 @@
+{
+  "name": "procjam2014-regl",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "browserify src/index.js -d --s main -u crypto > build/main.js",
+    "build-prod": "browserify src/index.js --s main -u crypto | uglifyjs > build/main.js"
+  },
+  "author": "Kevin Chapelier",
+  "license": "MIT",
+  "dependencies": {
+    "regl": "^1.3.0",
+    "touches": "^1.2.0"
+  }
+}
