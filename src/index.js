@@ -64,12 +64,26 @@ function init() {
 
     /* RENDERING */
 
+    var previousWidth = 0,
+        previousHeight = 0,
+        previousQuality = 0;
+
     function resize(options) {
-        var quality = options.actualQuality;
-        quality = 1;
-        canvas.style.webkitTransform = canvas.style.transform = 'scale3d(' + quality + ', ' + quality + ', 1)';
-        canvas.width = Math.ceil(document.body.clientWidth / quality);
-        canvas.height = Math.ceil(document.body.clientHeight / quality);
+        var quality = options.actualQuality,
+            width = document.body.clientWidth,
+            height = document.body.clientHeight;
+
+        if (quality !== previousQuality || width !== previousWidth || height !== previousHeight) {
+            canvas.style.webkitTransform = canvas.style.transform = 'scale3d(' + quality + ', ' + quality + ', 1)';
+            canvas.width = Math.ceil(document.body.clientWidth / quality);
+            canvas.height = Math.ceil(document.body.clientHeight / quality);
+
+            regl.poll();
+
+            previousQuality = quality;
+            previousWidth = width;
+            previousHeight = height;
+        }
     }
 
     var drawTriangle = regl({
@@ -92,18 +106,9 @@ function init() {
     });
 
     function drawScene (options) {
-        // clear contents of the drawing buffer
-        regl.clear({
-            scale: options.scale,
-            distortion: options.distortion,
-            seaLevel: options.seaLevel,
-            move: [options.moveX, options.moveY],
-            depth: 1
-        });
-
         // draw a triangle using the command defined above
         drawTriangle({
-            scale: options.scale,
+            scale: options.scale * options.actualQuality,
             distortion: options.distortion,
             seaLevel: options.seaLevel,
             move: [options.moveX, options.moveY]
@@ -112,8 +117,10 @@ function init() {
 
     var previousTime = 0;
 
-    regl.frame(function (frameOptions) {
-        var time = frameOptions.time * 1000;
+    // cant use regl builtin RAF as we intend to resize the canvas in the main loop :(
+
+    function render (time) {
+        time = time || 0;
 
         var deltaTime = time - previousTime;
 
@@ -128,8 +135,11 @@ function init() {
         }
 
         previousTime = time;
-    });
 
+        requestAnimationFrame(render);
+    }
+
+    render();
 
     var gui = new dat.GUI(),
         controllers = [];
